@@ -1,20 +1,111 @@
-import { View, Text, TouchableOpacity ,StyleSheet,Image} from 'react-native'
-import React,{useState} from 'react'
+import { View, Text, TouchableOpacity ,StyleSheet,Image,ActivityIndicator} from 'react-native'
+// ✅ Correct
+import React, { useState } from 'react';
+
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import { colors } from '../utils/colors'
 import { TextInput } from 'react-native-gesture-handler'
 import Feather from 'react-native-vector-icons/Feather'
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons'
 import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const LoginScreen = () => {
+
+const LoginScreen = ({setToken}) => {
+
+   const [loginData, setLoginData] = useState({
+   
+      email: '',
+      password: '',
+    });
+
+    const [loading, setLoading] = useState(false);
 
     const[secureEntery , setSecureEntery] = useState(true)
+    
+
     const navigation = useNavigation();
 
      const handleBackButton =()=>{
  navigation.navigate("HomeScreen")
     }
+
+     const handleChange = (key, value) => {
+    setLoginData(prev => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
+  //
+
+
+  const handleLogin = async () => {
+    
+  setLoading(true)
+    const data = {
+    
+    email: loginData.email,
+    password: loginData.password
+  };
+  try {
+    const response = await fetch('https://peace2024-dubswayvideoai.hf.space/api/auth/login',{
+        
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+    }
+      );
+      const result = await response.json();
+    
+    console.log('Response Data:', result);
+   if (result?.access_token) {
+      console.log("Setting token:", result.access_token);
+      await AsyncStorage.setItem('userToken', result.access_token);
+       alert("Token set successfully");
+      setToken(result.access_token); // make sure this is from useState or context
+      alert("Token set successfully");
+
+    }
+
+      // Navigate to Home or other protected page
+  
+   else {
+      console.log("Login failed");
+    }
+  } catch (error) {
+    Alert.alert('Network Error', error.message);
+  } finally {
+    setLoading(false);
+  }
+};
+//       navigation.reset({
+//   index: 0,
+//   routes: [{ name: 'Home' }],
+// });
+      //navigation.navigate('Home');
+    // console.log("'Token storedtoken",result.access_token)
+    // Save token and navigate to Home page
+    // await AsyncStorage.setItem('token', result.access_token);
+    // await AsyncStorage.setItem('userToken', result.access_token);
+    // console.log('Token stored',token);
+    // navigation.navigate("Home");
+//   } else {
+//    console.log("login failed")
+//   }
+
+//     } catch (error) {
+//       Alert.alert('Network Error', error.message);
+//    }
+//    finally {
+//       setLoading(false); // Hide loader
+//     }
+   
+// };
+
+
 
   return (
     <View style={styles.container}> 
@@ -29,12 +120,13 @@ const LoginScreen = () => {
       <View style={styles.formContainer}>
         <View style={styles.inputContainer}>
             <Ionicons name={'mail-outline'} size={25} color={colors.secondary}/>
-            <TextInput style={styles.textInput} placeholder='Enter your email' keyboardType='email-address'/>
+            <TextInput style={styles.textInput} placeholder='Enter your email' keyboardType='email-address' value={loginData.email} onChangeText={text => handleChange('email', text)}/>
         </View>
         <View style={styles.inputContainer}>
         <Feather name="lock" size={25} color={colors.secondary}/>
             <TextInput style={styles.textInput} placeholder='Enter your password'   multiline={false}
-        keyboardType="default"  secureTextEntry={secureEntery}/>
+                    keyboardType="default"  secureTextEntry={secureEntery}   value={loginData.password}
+                    onChangeText={text => handleChange('password', text)}/>
         <TouchableOpacity onPress={()=>{
             setSecureEntery((prev)=> !prev)
         }}>
@@ -45,9 +137,18 @@ const LoginScreen = () => {
         <TouchableOpacity>
             <Text style={styles.forgotPassword}>Forgot Password?</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.loginButtonWrapper}>
-            <Text style={styles.loginText}>Login</Text>
+
+            {loading ? (
+                <ActivityIndicator size="large" color="#0000ff" />
+              ) : (
+                  <TouchableOpacity style={styles.loginButtonWrapper}>
+            <Text style={styles.loginText} onPress={handleLogin}>Login</Text>
         </TouchableOpacity>
+              )
+            }
+        {/* <TouchableOpacity style={styles.loginButtonWrapper}>
+            <Text style={styles.loginText} onPress={handleLogin}>Login</Text>
+        </TouchableOpacity> */}
         <Text style={styles.continueText}>or continue with</Text>
       </View>
       <TouchableOpacity style={styles.googleButtonWrapper}> 

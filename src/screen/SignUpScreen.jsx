@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity ,StyleSheet,Image} from 'react-native'
+import { View, Text, TouchableOpacity ,StyleSheet,Image,ActivityIndicator} from 'react-native'
 import React,{useState} from 'react'
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import { colors } from '../utils/colors'
@@ -17,8 +17,9 @@ const SignUpScreen = () => {
     password: '',
   });
 
-const[email , setEmail]= useState('')
-const[password , setPassword]= useState('')
+// const[email , setEmail]= useState('')
+// const[password , setPassword]= useState('')
+const [loading, setLoading] = useState(false);
       const navigation = useNavigation();
 
     const handleBackButton =()=>{
@@ -40,7 +41,7 @@ const[password , setPassword]= useState('')
 
 
 const handleSignUp = async () => {
-
+  setLoading(true)
     const data = {
     
     email: formData.email,
@@ -60,19 +61,24 @@ const handleSignUp = async () => {
     
     console.log('Response Data:', result);
    if (result && result.hasOwnProperty("user_id")) {
+   
       alert( 'User already exists');
         console.log("Signup successfully")
 //         // Navigate to login or home screen
-navigation.navigate("Login")
+           navigation.navigate("Login")
          } else {
-             
-             alert( 'Already signup');
-            navigation.navigate("HomeScreen")
+              
+             alert( 'Already signup',"Go to login page");
+            navigation.navigate("Login")
 //         Alert.alert('Error', data.message || 'Something went wrong');
       }
     } catch (error) {
       Alert.alert('Network Error', error.message);
    }
+   finally {
+      setLoading(false); // Hide loader
+    }
+   
 };
 
   return (
@@ -108,10 +114,15 @@ navigation.navigate("Login")
  </TouchableOpacity>
 
         </View>
-      
-        <TouchableOpacity style={styles.loginButtonWrapper}>
+      {loading ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : (
+         <TouchableOpacity style={styles.loginButtonWrapper}>
             <Text style={styles.loginText} onPress={handleSignUp}>Sign Up</Text>
-        </TouchableOpacity>
+        </TouchableOpacity>)
+    }
+
+       
         <Text style={styles.continueText}>or continue with</Text>
       </View>
       <TouchableOpacity style={styles.googleButtonWrapper}> 

@@ -1,6 +1,6 @@
 
 import { Button, StyleSheet, Text, View ,FlatList} from 'react-native'
-import React,{useState} from 'react'
+// import React,{useState} from 'react'
 
 
 
