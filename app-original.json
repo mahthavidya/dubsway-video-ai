@@ -44,13 +44,7 @@
       "bundler": "metro"
     },
     "plugins": [
-      "expo-av",
-      [
-        "expo-document-picker",
-        {
-          "iCloudContainerEnvironment": "Production"
-        }
-      ]
+      "expo-av"
     ],
     "extra": {
       "eas": {
