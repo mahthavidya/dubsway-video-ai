@@ -7,12 +7,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert
+  Alert,
+  TextInput
 } from 'react-native';
-import { TextInput } from 'react-native-gesture-handler';
 import { useNavigation } from "@react-navigation/native";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
+import { LinearGradient } from 'expo-linear-gradient';
 import { colors } from '../../utils/colors';
 import { authStyles } from '../../styles/authStyles';
 
@@ -96,11 +97,41 @@ const SignUpScreen = () => {
       
       const result = await response.json();
       
-      if (result && result.hasOwnProperty("user_id")) {
+      // Check if signup was successful
+      if (response.ok && result && result.hasOwnProperty("user_id")) {
         // Account created successfully - navigate to success screen
         navigation.navigate('SignupSuccess');
       } else {
-        setError(result.message || 'Sign up failed. Please try again.');
+        // Handle specific error messages
+        let errorMessage = 'Sign up failed. Please try again.';
+        
+        if (result.detail === "Email already exists") {
+          errorMessage = 'This email is already registered. Please use a different email or try logging in.';
+        } else if (result.detail && result.detail.toLowerCase().includes('email')) {
+          errorMessage = 'Invalid email address. Please check and try again.';
+        } else if (result.detail && result.detail.toLowerCase().includes('password')) {
+          errorMessage = 'Password does not meet requirements. Please try a stronger password.';
+        } else if (result.message) {
+          errorMessage = result.message;
+        } else if (result.detail) {
+          errorMessage = result.detail;
+        } else if (!response.ok) {
+          switch (response.status) {
+            case 400:
+              errorMessage = 'Invalid information provided. Please check your details.';
+              break;
+            case 409:
+              errorMessage = 'An account with this email already exists.';
+              break;
+            case 500:
+              errorMessage = 'Server error. Please try again later.';
+              break;
+            default:
+              errorMessage = `Server error (${response.status}). Please try again later.`;
+          }
+        }
+        
+        setError(errorMessage);
       }
     } catch (error) {
       setError('Network error. Please check your connection.');
@@ -123,7 +154,12 @@ const SignUpScreen = () => {
         keyboardShouldPersistTaps="handled"
       >
         {/* Header Section */}
-        <View style={authStyles.headerContainer}>
+        <LinearGradient
+          colors={[colors.secondary, colors.secondaryDark, colors.primary]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={authStyles.headerContainer}
+        >
           <View style={authStyles.logoContainer}>
             <View style={authStyles.logo}>
               <Text style={authStyles.logoText}>📚</Text>
@@ -131,7 +167,7 @@ const SignUpScreen = () => {
             <Text style={authStyles.appName}>DubsWay</Text>
             <Text style={authStyles.tagline}>Start your learning journey</Text>
           </View>
-        </View>
+        </LinearGradient>
 
         {/* Content Section */}
         <View style={authStyles.contentContainer}>
@@ -269,15 +305,22 @@ const SignUpScreen = () => {
             {/* Sign Up Button */}
             <View style={authStyles.buttonContainer}>
               <TouchableOpacity
-                style={authStyles.primaryButton}
                 onPress={handleSignUp}
                 disabled={loading}
+                activeOpacity={0.8}
               >
-                {loading ? (
-                  <ActivityIndicator color={colors.white} />
-                ) : (
-                  <Text style={authStyles.primaryButtonText}>Create Account</Text>
-                )}
+                <LinearGradient
+                  colors={[colors.secondary, colors.secondaryDark]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={authStyles.primaryButton}
+                >
+                  {loading ? (
+                    <ActivityIndicator color={colors.white} />
+                  ) : (
+                    <Text style={authStyles.primaryButtonText}>Create Account</Text>
+                  )}
+                </LinearGradient>
               </TouchableOpacity>
             </View>
           </View>

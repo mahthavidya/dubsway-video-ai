@@ -44,7 +44,6 @@
       "bundler": "metro"
     },
     "plugins": [
-      "expo-av",
       [
         "expo-document-picker",
         {

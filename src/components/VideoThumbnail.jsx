@@ -105,7 +105,7 @@ const VideoThumbnail = ({
         </View>
 
         {/* PDF Available Badge */}
-        {pdfUrl && (
+        {pdfUrl && pdfUrl.trim() && pdfUrl !== '.' && (
           <View style={styles.pdfBadge}>
             <Ionicons name="document-text" size={12} color={colors.white} />
           </View>
@@ -115,14 +115,30 @@ const VideoThumbnail = ({
       {/* Video Info */}
       <View style={styles.infoContainer}>
         <Text style={styles.title} numberOfLines={2}>
-          {title}
+          {title || 'Untitled Video'}
         </Text>
-        <Text style={styles.status}>
-          {status.charAt(0).toUpperCase() + status.slice(1)}
-        </Text>
-        <Text style={styles.date}>
-          {new Date(createdAt).toLocaleDateString()}
-        </Text>
+        <View style={styles.metadataRow}>
+          <Text style={styles.status}>
+            {status && status.trim() && status.trim() !== '.' ? 
+              status.charAt(0).toUpperCase() + status.slice(1) : 
+              'Unknown'
+            }
+          </Text>
+          <Text style={styles.metadataSeparator}>•</Text>
+          <Text style={styles.date}>
+            {(() => {
+              try {
+                if (!createdAt || createdAt.trim() === '' || createdAt.trim() === '.') {
+                  return 'Unknown date';
+                }
+                const date = new Date(createdAt);
+                return isNaN(date.getTime()) ? 'Invalid date' : date.toLocaleDateString();
+              } catch (error) {
+                return 'Invalid date';
+              }
+            })()}
+          </Text>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -202,12 +218,21 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
     lineHeight: 18,
   },
+  metadataRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+  },
   status: {
     fontSize: 12,
     fontWeight: '500',
     color: colors.textSecondary,
-    marginBottom: spacing.xs,
     textTransform: 'capitalize',
+  },
+  metadataSeparator: {
+    fontSize: 12,
+    color: colors.textLight,
+    marginHorizontal: spacing.xs,
   },
   date: {
     fontSize: 11,

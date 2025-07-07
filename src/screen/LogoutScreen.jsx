@@ -21,7 +21,7 @@ const LogoutScreen = ({setToken}) => {
     //     routes: [{ name: 'Login' }], // or route to AuthStack entry screen
     //   });
     } catch (error) {
-      console.error('Logout error:', error);
+      // Handle logout error silently
     }
   };
 

@@ -33,7 +33,7 @@ export const AuthProvider = ({ children }) => {
           setUser(userData);
         }
       } catch (e) {
-        // Handle error silently
+        // Silently handle token verification errors
       } finally {
         setLoading(false);
       }
@@ -51,19 +51,25 @@ export const AuthProvider = ({ children }) => {
         await Storage.setUserData(userData);
         setUser(userData);
       }
-    } catch (e) {
-      // Handle error silently
+    } catch (error) {
+      throw error;
     }
   };
 
   const logout = async () => {
     try {
+      // Clear storage
       await Storage.removeUserToken();
       await Storage.removeUserData();
+      
+      // Clear state
       setToken(null);
       setUser(null);
-    } catch (e) {
-      // Handle error silently
+    } catch (error) {
+      // Even if storage clearing fails, clear the state
+      setToken(null);
+      setUser(null);
+      throw error;
     }
   };
 

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -21,21 +21,48 @@ const VideoPlayer = ({ videoUrl, pdfUrl, title, onClose, visible }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [status, setStatus] = useState({});
+  const [videoError, setVideoError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const videoRef = useRef(null);
+
+  // Reset states when modal opens/closes
+  useEffect(() => {
+    if (visible) {
+      setIsPlaying(false);
+      setIsLoading(true);
+      setVideoError(null);
+      setStatus({});
+    }
+  }, [visible]);
 
   const togglePlayPause = async () => {
     if (videoRef.current) {
-      if (isPlaying) {
-        await videoRef.current.pauseAsync();
-      } else {
-        await videoRef.current.playAsync();
+      try {
+        if (isPlaying) {
+          await videoRef.current.pauseAsync();
+        } else {
+          await videoRef.current.playAsync();
+        }
+        setIsPlaying(!isPlaying);
+      } catch (error) {
+        Alert.alert('Error', 'Failed to control video playback');
       }
-      setIsPlaying(!isPlaying);
     }
   };
 
   const onPlaybackStatusUpdate = (status) => {
     setStatus(status);
+    setIsPlaying(status.isPlaying || false);
+    
+    if (status.isLoaded) {
+      setIsLoading(false);
+    }
+    
+    if (status.error) {
+      setVideoError(status.error);
+      setIsLoading(false);
+    }
+    
     if (status.didJustFinish) {
       setIsPlaying(false);
     }
@@ -112,29 +139,60 @@ const VideoPlayer = ({ videoUrl, pdfUrl, title, onClose, visible }) => {
 
         {/* Video Player */}
         <View style={styles.videoContainer}>
-          <Video
-            ref={videoRef}
-            style={styles.video}
-            source={{ uri: videoUrl }}
-            useNativeControls={false}
-            resizeMode="contain"
-            isLooping={false}
-            onPlaybackStatusUpdate={onPlaybackStatusUpdate}
-          />
-          
-          {/* Custom Controls */}
-          <View style={styles.controlsContainer}>
-            <TouchableOpacity
-              style={styles.playButton}
-              onPress={togglePlayPause}
-            >
-              <Ionicons
-                name={isPlaying ? 'pause' : 'play'}
-                size={48}
-                color={colors.white}
+          {videoError ? (
+            <View style={styles.errorContainer}>
+              <Ionicons name="alert-circle" size={48} color={colors.error} />
+              <Text style={styles.errorText}>Failed to load video</Text>
+              <Text style={styles.errorSubtext}>Please check your internet connection</Text>
+              <TouchableOpacity 
+                style={styles.retryButton}
+                onPress={() => {
+                  setVideoError(null);
+                  setIsLoading(true);
+                  if (videoRef.current) {
+                    videoRef.current.replayAsync();
+                  }
+                }}
+              >
+                <Text style={styles.retryButtonText}>Retry</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <>
+              <Video
+                ref={videoRef}
+                style={styles.video}
+                source={{ uri: videoUrl }}
+                useNativeControls={false}
+                resizeMode="contain"
+                isLooping={false}
+                onPlaybackStatusUpdate={onPlaybackStatusUpdate}
+                shouldPlay={false}
               />
-            </TouchableOpacity>
-          </View>
+              
+              {isLoading && (
+                <View style={styles.loadingContainer}>
+                  <Text style={styles.loadingText}>Loading video...</Text>
+                </View>
+              )}
+              
+              {/* Custom Controls */}
+              {!isLoading && (
+                <View style={styles.controlsContainer}>
+                  <TouchableOpacity
+                    style={styles.playButton}
+                    onPress={togglePlayPause}
+                  >
+                    <Ionicons
+                      name={isPlaying ? 'pause' : 'play'}
+                      size={48}
+                      color={colors.white}
+                    />
+                  </TouchableOpacity>
+                </View>
+              )}
+            </>
+          )}
 
           {/* Progress Bar */}
           {status.durationMillis && (
@@ -226,6 +284,52 @@ const styles = StyleSheet.create({
   video: {
     width: screenWidth,
     height: screenHeight * 0.6,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.xl,
+  },
+  errorText: {
+    color: colors.white,
+    fontSize: 18,
+    fontWeight: '600',
+    marginTop: spacing.md,
+    textAlign: 'center',
+  },
+  errorSubtext: {
+    color: colors.textLight,
+    fontSize: 14,
+    marginTop: spacing.sm,
+    textAlign: 'center',
+  },
+  retryButton: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.lg,
+    marginTop: spacing.lg,
+  },
+  retryButtonText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  loadingContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  },
+  loadingText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: '500',
   },
   controlsContainer: {
     position: 'absolute',

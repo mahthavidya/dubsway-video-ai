@@ -110,38 +110,45 @@
   
 // }
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { AuthProvider, useAuth } from './src/context/AuthContext';
 import AuthStack from './src/navigation/AuthStack';
 import DrawerNavigation from './src/navigation/DrawerNavigation';
-import { View, StyleSheet } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
+import { colors } from './src/utils/colors';
 
-const App = () => {
-  const [token, setToken] = useState(null);
+const LoadingScreen = () => (
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+    <ActivityIndicator size="large" color={colors.primary} />
+  </View>
+);
 
-  React.useEffect(() => {
-    const verifyToken = async () => {
-      try {
-        const value = await AsyncStorage.getItem('userToken');
-        if (value !== null) {
-          setToken(value);
-        }
-      } catch (e) {
-        console.log('Failed to retrieve token', e);
-      }
-    };
+const AppContent = () => {
+  const { token, loading } = useAuth();
 
-    verifyToken();
-  }, []);
+  if (loading) {
+    return <LoadingScreen />;
+  }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <NavigationContainer>
-        {token ? <DrawerNavigation  setToken={setToken}/> : <AuthStack   setToken={setToken}/>}
-      </NavigationContainer>
-    </GestureHandlerRootView>
+    <NavigationContainer>
+      {token ? <DrawerNavigation /> : <AuthStack />}
+    </NavigationContainer>
+  );
+};
+
+const App = () => {
+  return (
+    <SafeAreaProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </GestureHandlerRootView>
+    </SafeAreaProvider>
   );
 };
 

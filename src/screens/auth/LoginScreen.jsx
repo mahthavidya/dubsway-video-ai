@@ -7,12 +7,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert
+  Alert,
+  TextInput
 } from 'react-native';
-import { TextInput } from 'react-native-gesture-handler';
 import { useNavigation } from "@react-navigation/native";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
+import { LinearGradient } from 'expo-linear-gradient';
 import { colors } from '../../utils/colors';
 import { useAuth } from '../../context/AuthContext';
 import { authStyles } from '../../styles/authStyles';
@@ -109,7 +110,12 @@ const LoginScreen = () => {
         keyboardShouldPersistTaps="handled"
       >
         {/* Header Section */}
-        <View style={authStyles.headerContainer}>
+        <LinearGradient
+          colors={[colors.primary, colors.primaryDark, colors.gradientEnd]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={authStyles.headerContainer}
+        >
           <View style={authStyles.logoContainer}>
             <View style={authStyles.logo}>
               <Text style={authStyles.logoText}>📚</Text>
@@ -117,7 +123,7 @@ const LoginScreen = () => {
             <Text style={authStyles.appName}>DubsWay</Text>
             <Text style={authStyles.tagline}>Transform your learning with AI</Text>
           </View>
-        </View>
+        </LinearGradient>
 
         {/* Content Section */}
         <View style={authStyles.contentContainer}>
@@ -198,15 +204,22 @@ const LoginScreen = () => {
             {/* Login Button */}
             <View style={authStyles.buttonContainer}>
               <TouchableOpacity
-                style={authStyles.primaryButton}
                 onPress={handleLogin}
                 disabled={loading}
+                activeOpacity={0.8}
               >
-                {loading ? (
-                  <ActivityIndicator color={colors.white} />
-                ) : (
-                  <Text style={authStyles.primaryButtonText}>Sign In</Text>
-                )}
+                <LinearGradient
+                  colors={[colors.primary, colors.primaryDark]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={authStyles.primaryButton}
+                >
+                  {loading ? (
+                    <ActivityIndicator color={colors.white} />
+                  ) : (
+                    <Text style={authStyles.primaryButtonText}>Sign In</Text>
+                  )}
+                </LinearGradient>
               </TouchableOpacity>
             </View>
           </View>

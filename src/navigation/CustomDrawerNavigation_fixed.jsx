@@ -236,51 +236,12 @@ const CustomDrawerNavigationContent = () => {
 
 const CustomDrawerNavigation = () => {
   return (
-    <View style={styles.container}>
-      <Stack.Navigator
-        screenOptions={{
-          headerShown: true,
-          // Global header configuration for safe areas
-          headerStyle: {
-            backgroundColor: colors.primary,
-          },
-          headerTintColor: '#fff',
-          headerTitleStyle: {
-            fontWeight: 'bold',
-          },
-        }}
-      >
-        <Stack.Screen 
-          name="Home" 
-          component={Home}
-          options={() => CustomHeader({ title: 'Dashboard', route: 'Home' })}
-        />
-        <Stack.Screen 
-          name="VideoUpload" 
-          component={VideoUploadExample}
-          options={() => CustomHeader({ title: 'Upload Video', route: 'VideoUpload' })}
-        />
-        <Stack.Screen 
-          name="Profile" 
-          component={Profile}
-          options={() => CustomHeader({ title: 'Profile', route: 'Profile' })}
-        />
-        <Stack.Screen 
-          name="Settings" 
-          component={LogoutScreen}
-          options={() => CustomHeader({ title: 'Settings', route: 'Settings' })}
-        />
-      </Stack.Navigator>
-      
-      <NavigationHandler>
-        <CustomDrawerOverlay
-          isOpen={isDrawerOpen}
-          onClose={closeDrawer}
-          onLogout={handleLogout}
-          currentRoute={currentRoute}
-        />
-      </NavigationHandler>
-    </View>
+    <Stack.Navigator
+      screenOptions={{ headerShown: false }}
+      initialRouteName="DrawerContent"
+    >
+      <Stack.Screen name="DrawerContent" component={CustomDrawerNavigationContent} />
+    </Stack.Navigator>
   );
 };
 
@@ -319,7 +280,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 8,
-    // Remove any transform from here as it's handled by Animated.View
   },
   drawerHeader: {
     flexDirection: 'row',

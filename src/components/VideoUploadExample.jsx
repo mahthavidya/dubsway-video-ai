@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import ApiService from '../services/api';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { colors } from '../utils/colors';
 import { spacing } from '../utils/designSystem';
 import Ionicons from 'react-native-vector-icons/Ionicons';

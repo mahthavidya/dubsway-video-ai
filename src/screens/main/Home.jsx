@@ -12,6 +12,9 @@ import {
   Dimensions
 } from 'react-native';
 import { useNavigation } from "@react-navigation/native";
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import Feather from 'react-native-vector-icons/Feather';
+import { LinearGradient } from 'expo-linear-gradient';
 import { colors } from '../../utils/colors';
 import { spacing, borderRadius, shadows } from '../../utils/designSystem';
 import { StyleSheet } from 'react-native';
@@ -30,12 +33,38 @@ const Home = () => {
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [videoPlayerVisible, setVideoPlayerVisible] = useState(false);
 
+  // Get user's first name for personalization
+  const getUserFirstName = () => {
+    if (user?.email) {
+      // Extract name from email (before @ symbol)
+      const namePart = user.email.split('@')[0];
+      // Capitalize first letter and clean up
+      return namePart.charAt(0).toUpperCase() + namePart.slice(1).replace(/[._]/g, ' ');
+    }
+    return 'User';
+  };
+
   // Fetch dashboard data
   const fetchDashboardData = async () => {
     try {
       const data = await ApiService.getUserDashboard();
+      
       if (data && Array.isArray(data)) {
-        setRecentUploads(data);
+        // Filter out any items with problematic data
+        const cleanData = data.filter(item => {
+          const isValid = item && 
+                 typeof item === 'object' && 
+                 item.id && 
+                 item.id !== '.' &&
+                 item.id !== '' &&
+                 (!item.status || (typeof item.status === 'string' && item.status.trim() !== '.' && item.status.trim() !== '')) &&
+                 (!item.pdf_url || (typeof item.pdf_url === 'string' && item.pdf_url !== '.')) &&
+                 (!item.video_url || (typeof item.video_url === 'string' && item.video_url.trim() !== '.' && item.video_url.trim() !== ''));
+          
+          return isValid;
+        });
+        
+        setRecentUploads(cleanData);
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to fetch dashboard data: ' + error.message);
@@ -51,36 +80,64 @@ const Home = () => {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchDashboardData();
+    try {
+      await fetchDashboardData();
+    } catch (error) {
+      // Error is already handled in fetchDashboardData
+    }
   };
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now - date);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    if (!dateString || typeof dateString !== 'string' || dateString.trim() === '' || dateString === '.') {
+      return 'Unknown date';
+    }
     
-    if (diffDays === 1) {
-      return 'Today';
-    } else if (diffDays === 2) {
-      return 'Yesterday';
-    } else if (diffDays <= 7) {
-      return `${diffDays - 1} days ago`;
-    } else {
-      return date.toLocaleDateString();
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return 'Invalid date';
+      }
+      
+      const now = new Date();
+      const diffTime = Math.abs(now - date);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 1) {
+        return 'Today';
+      } else if (diffDays === 2) {
+        return 'Yesterday';
+      } else if (diffDays <= 7) {
+        return `${diffDays - 1} days ago`;
+      } else {
+        return date.toLocaleDateString();
+      }
+    } catch (error) {
+      return 'Invalid date';
     }
   };
 
   const getVideoTitle = (videoUrl) => {
-    if (!videoUrl) return 'Untitled Video';
+    if (!videoUrl || typeof videoUrl !== 'string' || videoUrl.trim() === '' || videoUrl === '.') {
+      return 'Untitled Video';
+    }
     
-    // Extract filename from URL
-    const urlParts = videoUrl.split('/');
-    const filename = urlParts[urlParts.length - 1];
-    
-    // Remove file extension and decode URL
-    const titleWithoutExt = filename.replace(/\.[^/.]+$/, '');
-    return decodeURIComponent(titleWithoutExt);
+    try {
+      // Extract filename from URL
+      const urlParts = videoUrl.split('/');
+      const filename = urlParts[urlParts.length - 1];
+      
+      // Remove file extension and decode URL
+      const titleWithoutExt = filename.replace(/\.[^/.]+$/, '');
+      
+      const decoded = decodeURIComponent(titleWithoutExt);
+      
+      // Return default if result is empty or just punctuation
+      const finalTitle = (decoded && decoded.trim() && decoded.trim() !== '.') ? decoded : 'Untitled Video';
+      
+      return finalTitle;
+    } catch (error) {
+      return 'Untitled Video';
+    }
   };
 
   const getStatusIcon = (status) => {
@@ -142,21 +199,30 @@ const Home = () => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[colors.primary]}
+            colors={[colors.primary, colors.secondary, colors.accent]}
             tintColor={colors.primary}
+            title="Pull to refresh"
+            titleColor={colors.textSecondary}
           />
         }
       >
         {/* Header */}
-        <View style={styles.header}>
+        <LinearGradient
+          colors={[colors.primary, colors.primaryDark, colors.gradientAccent]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.header}
+        >
           <View>
-            <Text style={styles.greeting}>Good Morning! 👋</Text>
+            <Text style={styles.greeting}>Good Morning, {getUserFirstName()}!</Text>
             <Text style={styles.username}>Ready to learn?</Text>
           </View>
           <TouchableOpacity style={styles.profileButton}>
-            <Text style={{fontSize: 30, color: colors.white}}>👤</Text>
+            <Text style={{fontSize: 20, color: colors.white, fontWeight: '600'}}>
+              {user?.email ? user.email.charAt(0).toUpperCase() : 'U'}
+            </Text>
           </TouchableOpacity>
-        </View>
+        </LinearGradient>
 
         {/* Quick Actions */}
         <View style={styles.quickActions}>
@@ -167,7 +233,7 @@ const Home = () => {
               onPress={() => handleUpload('Video')}
             >
               <View style={styles.actionIcon}>
-                <Text style={{fontSize: 20, color: colors.white}}>🎥</Text>
+                <Text style={{fontSize: 20, color: colors.white}}>Video</Text>
               </View>
               <Text style={styles.actionTitle}>Upload Video</Text>
               <Text style={styles.actionSubtitle}>Convert video to PDF</Text>
@@ -178,7 +244,7 @@ const Home = () => {
               onPress={() => handleUpload('Audio')}
             >
               <View style={styles.actionIcon}>
-                <Text style={{fontSize: 20, color: colors.white}}>🎤</Text>
+                <Text style={{fontSize: 20, color: colors.white}}>Audio</Text>
               </View>
               <Text style={styles.actionTitle}>Upload Audio</Text>
               <Text style={styles.actionSubtitle}>Convert audio to PDF</Text>
@@ -193,7 +259,7 @@ const Home = () => {
             <View style={styles.headerActions}>
               <TouchableOpacity onPress={toggleViewMode} style={styles.viewToggle}>
                 <Text style={{fontSize: 16, color: colors.primary}}>
-                  {viewMode === 'list' ? '⊞' : '☰'}
+                  {viewMode === 'list' ? 'Grid' : 'List'}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity>
@@ -208,7 +274,7 @@ const Home = () => {
             </View>
           ) : recentUploads.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Text style={{fontSize: 40, color: colors.textLight}}>☁️</Text>
+              <Text style={{fontSize: 40, color: colors.textLight}}>No uploads</Text>
               <Text style={styles.emptyText}>No uploads yet</Text>
               <Text style={styles.emptySubtext}>Upload your first video to get started</Text>
             </View>
@@ -233,42 +299,50 @@ const Home = () => {
               )}
             />
           ) : (
-            recentUploads.map((item) => (
-              <TouchableOpacity 
-                key={item.id} 
-                style={styles.recentItem}
-                onPress={() => handleRecentItem(item)}
-              >
-                <View style={styles.recentIcon}>
-                  <Ionicons 
-                    name={getStatusIcon(item.status)} 
-                    size={20} 
-                    color={getStatusColor(item.status)} 
-                  />
-                </View>
-                <View style={styles.recentContent}>
-                  <Text style={styles.recentTitle} numberOfLines={1}>
-                    {getVideoTitle(item.video_url)}
-                  </Text>
-                  <View style={styles.recentMetadata}>
-                    <Text style={styles.recentDate}>{formatDate(item.created_at)}</Text>
-                    <Text style={[styles.recentStatus, { color: getStatusColor(item.status) }]}>
-                      {item.status}
-                    </Text>
-                  </View>
-                  {item.pdf_url && (
-                    <View style={styles.pdfIndicator}>
-                      <Text style={{fontSize: 12, color: colors.success}}>📄</Text>
-                      <Text style={styles.pdfText}>PDF Ready</Text>
+            <View>
+              {recentUploads.map((item, index) => {
+                // Validate item before rendering
+                if (!item || !item.id || !item.video_url) {
+                  return null;
+                }
+                
+                const safeTitle = getVideoTitle(item.video_url) || 'Untitled Video';
+                const safeStatus = (item.status && typeof item.status === 'string' && item.status.trim()) || 'Unknown';
+                const safeDate = formatDate(item.created_at) || 'Unknown date';
+                
+                return (
+                  <TouchableOpacity 
+                    key={`video-${item.id}`}
+                    style={styles.recentItem}
+                    onPress={() => handleRecentItem(item)}
+                  >
+                    <View style={styles.recentIcon}>
+                      <Ionicons 
+                        name={getStatusIcon(safeStatus)} 
+                        size={20} 
+                        color={getStatusColor(safeStatus)} 
+                      />
                     </View>
-                  )}
-                </View>
-                <View style={styles.recentActions}>
-                  <Text style={{fontSize: 20, color: colors.primary}}>▶️</Text>
-                  <Feather name="chevron-right" size={16} color={colors.textLight} />
-                </View>
-              </TouchableOpacity>
-            ))
+                    <View style={styles.recentContent}>
+                      <Text style={styles.recentTitle} numberOfLines={1}>
+                        {safeTitle}
+                      </Text>
+                      <View style={styles.recentMetadata}>
+                        <Text style={[styles.recentStatus, { color: getStatusColor(safeStatus) }]}>
+                          {safeStatus}
+                        </Text>
+                        <Text style={styles.metadataSeparator}>•</Text>
+                        <Text style={styles.recentDate}>{safeDate}</Text>
+                      </View>
+                    </View>
+                    <View style={styles.recentActions}>
+                      <Ionicons name="play-circle" size={24} color={colors.primary} />
+                      <Feather name="chevron-right" size={16} color={colors.textLight} />
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
           )}
         </View>
 
@@ -313,7 +387,7 @@ const Home = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.backgroundSecondary,
   },
   header: {
     backgroundColor: colors.primary,
@@ -338,7 +412,15 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   profileButton: {
-    padding: spacing.sm,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.accent,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.accentLight,
+    ...shadows.md,
   },
   quickActions: {
     padding: spacing.lg,
@@ -368,8 +450,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.secondary,
   },
   actionIcon: {
-    width: 50,
-    height: 50,
+    width: 60,
+    height: 60,
     borderRadius: borderRadius.full,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
@@ -405,12 +487,12 @@ const styles = StyleSheet.create({
   viewToggle: {
     padding: spacing.xs,
     borderRadius: borderRadius.sm,
-    backgroundColor: colors.grayLight,
+    backgroundColor: colors.gray200,
   },
   seeAll: {
     fontSize: 14,
     color: colors.primary,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   recentItem: {
     backgroundColor: colors.surface,
@@ -419,13 +501,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
     ...shadows.sm,
   },
   recentIcon: {
     width: 40,
     height: 40,
     borderRadius: borderRadius.lg,
-    backgroundColor: colors.primaryLight + '20',
+    backgroundColor: colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.md,
@@ -440,9 +524,9 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   recentActions: {
-    flexDirection: 'column',
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
+    gap: spacing.sm,
   },
   pdfIndicator: {
     flexDirection: 'row',
@@ -464,9 +548,13 @@ const styles = StyleSheet.create({
   },
   recentMetadata: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: spacing.xs,
+  },
+  metadataSeparator: {
+    fontSize: 12,
+    color: colors.textLight,
+    marginHorizontal: spacing.xs,
   },
   recentStatus: {
     fontSize: 11,

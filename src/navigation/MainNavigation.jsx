@@ -10,8 +10,6 @@ const Drawer = createDrawerNavigator();
 
 // Main navigation using Stack (no drawer opening by default)
 const MainNavigation = () => {
-  console.log('🎯 MainNavigation: Rendering main navigation');
-
   return (
     <Stack.Navigator
       initialRouteName="Dashboard"

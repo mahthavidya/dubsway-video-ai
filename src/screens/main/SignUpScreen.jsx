@@ -59,11 +59,9 @@ const handleSignUp = async () => {
       );
       const result = await response.json();
     
-    console.log('Response Data:', result);
    if (result && result.hasOwnProperty("user_id")) {
    
       alert( 'User already exists');
-        console.log("Signup successfully")
 //         // Navigate to login or home screen
            navigation.navigate("Login")
          } else {

@@ -60,9 +60,7 @@ const LoginScreen = ({setToken}) => {
       );
       const result = await response.json();
     
-    console.log('Response Data:', result);
    if (result?.access_token) {
-      console.log("Setting token:", result.access_token);
       await AsyncStorage.setItem('userToken', result.access_token);
        alert("Token set successfully");
       setToken(result.access_token); // make sure this is from useState or context
@@ -73,7 +71,6 @@ const LoginScreen = ({setToken}) => {
       // Navigate to Home or other protected page
   
    else {
-      console.log("Login failed");
     }
   } catch (error) {
     Alert.alert('Network Error', error.message);

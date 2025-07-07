@@ -69,15 +69,12 @@ const Home = () => {
       });
 
       const result = await response.json();
-      console.log('Upload response:', result);
 
       alert('Upload Success', 'File uploaded successfully');
 
     } catch (err) {
       if (DocumentPicker.isCancel(err)) {
-        console.log('User cancelled document picker');
       } else {
-        console.error('Upload error:', err);
         Alert.alert('Upload Failed', err.message);
       }
     }
@@ -106,23 +103,19 @@ const renderItem = ({ item }) => (
   );
 
 React.useEffect(()=>{
-console.log("files",files)
 },[files])
 
 
   React.useEffect(() => {
-    console.log('useEffect is called when component mounts');
     const verifyToken = async () => {
       try{
  const value = await AsyncStorage.getItem('userToken');
  if(value !== null){
-    console.log("token",value)
 setToken(value)
  }
 
       }
       catch(e){
-        console.log("Failed to retireve token",e)
       }
      };
 
@@ -135,7 +128,6 @@ setToken(value)
 
   React.useEffect(()=>{
 if(token && token !== null){
-  console.log("token",token)
 }
   },[token])
   //  useEffect(() => {

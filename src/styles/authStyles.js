@@ -100,17 +100,19 @@ export const authStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.xl,
+    borderWidth: 2,
+    borderColor: colors.borderLight,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
     marginBottom: spacing.md,
     ...shadows.sm,
   },
   
   inputContainerFocused: {
     borderColor: colors.primary,
+    backgroundColor: colors.white,
+    elevation: 2,
     ...shadows.md,
   },
   
@@ -137,35 +139,38 @@ export const authStyles = StyleSheet.create({
   
   primaryButton: {
     backgroundColor: colors.primary,
-    borderRadius: borderRadius.lg,
-    paddingVertical: spacing.md,
+    borderRadius: borderRadius.xl,
+    paddingVertical: spacing.lg,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.md,
+    elevation: 3,
     ...shadows.md,
   },
   
   primaryButtonText: {
     fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.semiBold,
+    fontWeight: typography.fontWeight.bold,
     color: colors.white,
+    letterSpacing: 0.5,
   },
   
   secondaryButton: {
     backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    paddingVertical: spacing.md,
+    borderRadius: borderRadius.xl,
+    paddingVertical: spacing.lg,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderWidth: 2,
+    borderColor: colors.primary,
     ...shadows.sm,
   },
   
   secondaryButtonText: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.medium,
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.semiBold,
     color: colors.primary,
+    letterSpacing: 0.3,
   },
   
   // Footer section
