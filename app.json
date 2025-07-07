@@ -33,7 +33,6 @@
       },
       "package": "com.dubsway.videoai",
       "versionCode": 1,
-      "edgeToEdgeEnabled": true,
       "permissions": [
         "CAMERA",
         "RECORD_AUDIO"
