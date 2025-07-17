@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "DubsWay Video AI",
+    "slug": "dubsway-video-ai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#6366F1"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.dubsway.videoai"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#6366F1"
+      },
+      "package": "com.dubsway.videoai"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "0115cafd-784d-40ba-9ca4-aac357e94f4e"
+      }
+    },
+    "owner": "ashish1991.2009"
+  }
+}
